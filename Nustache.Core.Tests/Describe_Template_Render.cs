@@ -30,6 +30,54 @@ namespace Nustache.Core.Tests
         }
 
         [Test]
+        public void It_preserves_undefined_variables_with_empty_strings_when_there_is_no_data_nested_and_options_set_to_preserve_undefined_variables()
+        {
+            var options = new Options { PreserveUndefinedVariables = true };
+            var testObject = new
+            {
+                NestedFoo = new
+                    { }
+            };
+            var result = Render.StringToString("{{#NestedFoo}}before{{Foo}}after{{/NestedFoo}}", testObject, options);
+            Assert.AreEqual("before{{Foo}}after", result);
+        }
+
+        [Test]
+        public void It_removes_undefined_variables_with_empty_strings_when_the_associated_data_is_null()
+        {
+            var options = new Options { PreserveUndefinedVariables = true };
+            var testObject = new TestObject { Foo = null };
+
+            var result = Render.StringToString("before{{Foo}}after", testObject, options);
+            Assert.AreEqual("beforeafter", result);
+        }
+
+        [Test]
+        public void It_removes_undefined_variables_with_empty_strings_when_the_associated_data_is_uninitialised()
+        {
+            var options = new Options { PreserveUndefinedVariables = true };
+            var testObject = new TestObject();
+
+            var result = Render.StringToString("before{{Foo}}after", testObject, options);
+            Assert.AreEqual("beforeafter", result);
+        }
+
+        [Test]
+        public void It_removes_undefined_variables_with_empty_strings_when_the_associated_data_is_nested_and_null()
+        {
+            var options = new Options { PreserveUndefinedVariables = true };
+            var testObject = new TestObject
+                {
+                    NestedFoo = new TestObject
+                        {
+                            Foo = null
+                        }
+                };
+            var result = Render.StringToString("{{#NestedFoo}}before{{Foo}}after{{/NestedFoo}}", testObject, options);
+            Assert.AreEqual("beforeafter", result);
+        }
+
+        [Test]
         public void It_removes_undefined_variables_with_empty_strings_when_there_is_no_data_and_options_set_to_defaults()
         {
             var result = Render.StringToString("before{{foo}}after", null);

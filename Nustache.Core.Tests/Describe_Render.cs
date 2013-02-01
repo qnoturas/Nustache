@@ -73,11 +73,35 @@ namespace Nustache.Core.Tests
         }
 
         [Test]
-        public void It_can_render_unencoded_text()
+        public void It_htmlencodes_triple_mustache_tags()
         {
           var result = Render.StringToString("{{{foo}}}", new { foo = "<bar>" });
 
-          Assert.AreEqual("<bar>", result);
+          Assert.AreEqual("&lt;bar&gt;", result);
+        }
+
+        [Test]
+        public void It_converts_newlines_to_linebreaks_if_in_triple_mustache_tags()
+        {
+            var testObject = new
+            {
+                PreserveLineBreaks = "Preserve Line \n Breaks \n Please"
+            };
+
+            var result = Render.StringToString("{{{PreserveLineBreaks}}}", testObject);
+            Assert.AreEqual("Preserve Line <br /> Breaks <br /> Please", result);
+        }
+
+        [Test]
+        public void It_does_not_convert_newlines_if_in_double_mustache_tags()
+        {
+            var testObject = new
+            {
+                PreserveLineBreaks = "Preserve Line \n Breaks \n Please"
+            };
+
+            var result = Render.StringToString("{{PreserveLineBreaks}}", testObject);
+            Assert.AreEqual("Preserve Line \n Breaks \n Please", result);
         }
     }
 }

@@ -7,3 +7,6 @@ obj
 *.sln.cache
 *.nupkg
 *.dotCover
+*.DotSettings*
+*.ncrunch*
+_NCrunch*

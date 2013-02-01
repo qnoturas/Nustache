@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 
 namespace Nustache.Core
 {
+    using System.Web;
+
     public class VariableReference : Part
     {
         private static readonly Regex _notEscapedRegex = new Regex(@"^\{\s*(.+?)\s*\}$");
@@ -37,14 +39,13 @@ namespace Nustache.Core
             {
                 context.Write(_escaped
                     ? Encoders.HtmlEncode(value.ToString())
-                    : value.ToString());
+                    : ReplaceLineBreaksAndEncode(value.ToString()));
+                return;
             }
-            else
+
+            if (context.CurrentOptions.PreserveUndefinedVariables && !context.PathExists(_path))
             {
-                if (context.CurrentOptions.PreserveUndefinedVariables)
-                {
-                    context.Write(Source());
-                }
+                context.Write(Source());
             }
         }
 
@@ -56,6 +57,25 @@ namespace Nustache.Core
         public override string ToString()
         {
             return string.Format("VariableReference(\"{0}\")", _path);
+        }
+
+        private string ReplaceLineBreaksAndEncode(string value)
+        {
+            var cleansedValue = HttpUtility.HtmlEncode(value);
+            return ReplaceNewLineWithBreak(cleansedValue);
+        }
+
+        private string ReplaceNewLineWithBreak(string stringToReplace)
+        {
+            if (string.IsNullOrEmpty(stringToReplace))
+            {
+                return stringToReplace;
+            }
+
+            stringToReplace = stringToReplace.Trim(Environment.NewLine.ToCharArray());
+            stringToReplace = stringToReplace.Replace(Environment.NewLine, "<br />");
+            stringToReplace = stringToReplace.Replace("\n", "<br />");
+            return stringToReplace;
         }
     }
 }

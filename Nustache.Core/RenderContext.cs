@@ -5,6 +5,9 @@ using System.IO;
 
 namespace Nustache.Core
 {
+    using System.ComponentModel;
+    using System.Reflection;
+
     public delegate Template TemplateLocator(string name);
 
     public delegate Object Lambda(string text);
@@ -39,6 +42,24 @@ namespace Nustache.Core
             _includeLevel = 0;
 
             CurrentOptions = options;
+        }
+
+        public bool PathExists(string path)
+        {
+            foreach (var data in _dataStack)
+            {
+                if (data != null)
+                {
+                    PropertyInfo property = data.GetType().GetProperty(path);
+
+                    if (property != null)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public object GetValue(string path)
