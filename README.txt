@@ -1,4 +1,34 @@
+Notes on this Custom  Implementation of Nustache
+------------------------------------------------------------------
+
+This version has a number of key differences that allowed us to tailor the functionality we wanted out of Nustache
+
+__Preserving Undefined Variables__
+
+- The original implementation removes any undefined variables from the populated template
+
+- This is great for a live environment; however we wanted to write integration tests that ensured all variables were catered for
+    - We cannot do this if the variables are removed even if not catered for
+
+- So the methods on this version now take in an optional "Options" object
+    - This object has a "PreserveUndefinedVariables" property
+    - If not provided; Nustache reverts to it's original implementation
+    - Otherwise any parameters without a matching property / field in the given object will be left in the template
+
+__Html Encoding of Triple Mustache Tags__
+
+- The mustache specification indicates that:
+    - {{value}} html encodes
+    - {{{value}}} presents the raw text (allowing us to inject html into the templates)
+
+- This is functionality we didn't need; however we did want the ability to preserve line breaks on body text
+
+- Therefore in our implementation {{{value}}} 
+    - Html encodes as {{value}} would
+    - Convereted any "\n" characters into "&lt;br /&gt;" tags
+
 Nustache - Logic-less templates for .NET
+-----------------------------------------------------
 
 For a list of implementations (other than .NET) and editor plugins, see
 http://mustache.github.com/.
