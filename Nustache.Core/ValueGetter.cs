@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Xml;
+using Newtonsoft.Json.Linq;
 
 namespace Nustache.Core
 {
@@ -21,6 +22,7 @@ namespace Nustache.Core
         private static ValueGetter GetValueGetter(object target, string name)
         {
             return XmlNodeValueGetter.GetXmlNodeValueGetter(target, name)
+                ?? JsonNodeValueGetter.GetJsonNodeValueGetter(target,name)
                 ?? PropertyDescriptorValueGetter.GetPropertyDescriptorValueGetter(target, name)
                 ?? GenericDictionaryValueGetter.GetGenericDictionaryValueGetter(target, name)
                 ?? DictionaryValueGetter.GetDictionaryValueGetter(target, name)
@@ -44,6 +46,55 @@ namespace Nustache.Core
         protected const StringComparison DefaultNameComparison = StringComparison.CurrentCultureIgnoreCase;
 
         #endregion
+    }
+
+    internal class JsonNodeValueGetter : ValueGetter
+    {
+      internal static JsonNodeValueGetter GetJsonNodeValueGetter(object target, string name)
+      {
+        if (target is JToken && ((JToken)target)[name] != null)
+        {
+          return new JsonNodeValueGetter((JToken)target, name);
+        }
+        return null;
+      }
+
+      private readonly JToken _target;
+      private readonly string _name;
+
+      private JsonNodeValueGetter(JToken target, string name)
+      {
+        _target = target;
+        _name = name;
+      }
+
+      public override object GetValue()
+      {
+        var token = _target[_name];
+        switch(token.Type)
+        {
+          case JTokenType.Integer:
+            return token.Value<int>();
+          case JTokenType.Date:
+            return token.Value<DateTime>();
+          case JTokenType.Float:
+            return token.Value<float>();
+          case JTokenType.Boolean:
+            return token.Value<bool>();
+          case JTokenType.String:
+            return token.Value<string>();
+          case JTokenType.TimeSpan:
+            return token.Value<TimeSpan>();
+          case JTokenType.Bytes:
+            return token.Value<byte[]>();
+          case JTokenType.Guid:
+            return token.Value<Guid>();
+          case JTokenType.Uri:
+            return token.Value<Uri>();
+          default:
+            return token;
+        }
+      }
     }
 
     internal class XmlNodeValueGetter : ValueGetter
